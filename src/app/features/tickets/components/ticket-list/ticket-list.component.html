@@ -1,0 +1,635 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1
+        class="text-2xl font-bold text-slate-800 dark:text-white transition-colors"
+      >
+        Chamados de Serviço
+      </h1>
+      <p class="text-slate-500 dark:text-slate-400 transition-colors">
+        Gerencie e acompanhe suas solicitações.
+      </p>
+    </div>
+    <a
+      routerLink="/tickets/new"
+      class="bg-accent hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 w-full md:w-auto"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      <span>Abrir Chamado</span>
+    </a>
+  </div>
+
+  <!-- Stats Cards -->
+  <app-stats-cards
+    *ngIf="!loading && tickets.length > 0"
+    [tickets]="tickets"
+  ></app-stats-cards>
+
+  <!-- Filters Section -->
+  <div
+    class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-slate-950/20 transition-colors"
+  >
+    <div class="flex flex-col lg:flex-row gap-4">
+      <!-- Search Input -->
+    <div class="relative flex-grow">
+      <div
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <input
+          #searchInput
+        type="text"
+          placeholder="Buscar por ID, título, descrição... (pressione /)"
+        [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchInput()"
+          class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+          aria-label="Buscar chamados - pressione barra para focar"
+        autocomplete="off"
+      />
+      </div>
+
+      <!-- Filter Dropdowns -->
+      <div class="flex flex-wrap gap-2">
+        <!-- Status Filter -->
+        <select
+          [(ngModel)]="statusFilter"
+          (ngModelChange)="onFilterChange()"
+          class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:ring-2 focus:ring-accent transition-all min-w-[140px]"
+          aria-label="Filtrar por status"
+        >
+          <option value="">Todos Status</option>
+          <option *ngFor="let status of statuses" [value]="status">
+            {{ status }}
+          </option>
+        </select>
+
+        <!-- Priority Filter -->
+        <select
+          [(ngModel)]="priorityFilter"
+          (ngModelChange)="onFilterChange()"
+          class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:ring-2 focus:ring-accent transition-all min-w-[140px]"
+          aria-label="Filtrar por prioridade"
+        >
+          <option value="">Todas Prioridades</option>
+          <option *ngFor="let priority of priorities" [value]="priority">
+            {{ priority }}
+          </option>
+        </select>
+
+        <!-- Category Filter -->
+        <select
+          [(ngModel)]="categoryFilter"
+          (ngModelChange)="onFilterChange()"
+          class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:ring-2 focus:ring-accent transition-all min-w-[140px]"
+          aria-label="Filtrar por categoria"
+        >
+          <option value="">Todas Categorias</option>
+          <option *ngFor="let category of categories" [value]="category">
+            {{ category }}
+          </option>
+        </select>
+
+        <!-- Clear Filters Button -->
+        <button
+          *ngIf="hasActiveFilters"
+          (click)="clearFilters()"
+          class="px-3 py-2.5 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 text-sm hover:bg-red-100 dark:hover:bg-red-900 transition-all flex items-center gap-1"
+          aria-label="Limpar filtros"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>Limpar</span>
+        </button>
+
+        <!-- Export CSV Button -->
+        <button
+          *ngIf="filteredTickets.length > 0"
+          (click)="exportToCSV()"
+          class="px-3 py-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-sm hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-all flex items-center gap-1"
+          aria-label="Exportar para CSV"
+          title="Exportar para CSV"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span class="hidden sm:inline">Exportar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State - Skeleton -->
+  <div *ngIf="loading" class="space-y-4">
+    <div
+      class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead
+            class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+          >
+            <tr>
+              <th class="px-6 py-4"><div class="skeleton h-4 w-12"></div></th>
+              <th class="px-6 py-4"><div class="skeleton h-4 w-20"></div></th>
+              <th class="px-6 py-4"><div class="skeleton h-4 w-20"></div></th>
+              <th class="px-6 py-4"><div class="skeleton h-4 w-40"></div></th>
+              <th class="px-6 py-4"><div class="skeleton h-4 w-24"></div></th>
+              <th class="px-6 py-4"><div class="skeleton h-4 w-20"></div></th>
+              <th class="px-6 py-4"><div class="skeleton h-4 w-16"></div></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            <tr *ngFor="let i of [1,2,3,4,5]" class="animate-pulse">
+              <td class="px-6 py-4"><div class="skeleton h-4 w-16"></div></td>
+              <td class="px-6 py-4"><div class="skeleton h-8 w-28 rounded-lg"></div></td>
+              <td class="px-6 py-4"><div class="skeleton h-6 w-20 rounded-full"></div></td>
+              <td class="px-6 py-4">
+                <div class="skeleton h-4 w-48 mb-2"></div>
+                <div class="skeleton h-3 w-64"></div>
+              </td>
+              <td class="px-6 py-4"><div class="skeleton h-4 w-20"></div></td>
+              <td class="px-6 py-4"><div class="skeleton h-4 w-24"></div></td>
+              <td class="px-6 py-4">
+                <div class="flex gap-2 justify-center">
+                  <div class="skeleton h-8 w-8 rounded-lg"></div>
+                  <div class="skeleton h-8 w-8 rounded-lg"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div
+    *ngIf="error"
+    class="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-4 rounded-lg flex items-center gap-3 border border-red-200 dark:border-red-800 transition-colors"
+    role="alert"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="!loading && !error && filteredTickets.length === 0"
+    class="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 border-dashed transition-colors"
+  >
+    <div
+      class="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="text-slate-400 dark:text-slate-500 transition-colors"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </div>
+    <h3
+      class="text-lg font-medium text-slate-800 dark:text-white transition-colors"
+    >
+      Nenhum chamado encontrado
+    </h3>
+    <p class="text-slate-500 dark:text-slate-400 mb-6 transition-colors">
+      {{ hasActiveFilters ? 'Tente ajustar seus filtros.' : 'Crie seu primeiro chamado.' }}
+    </p>
+    <div class="flex gap-3 justify-center">
+      <button
+        *ngIf="hasActiveFilters"
+        (click)="clearFilters()"
+        class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition-colors"
+      >
+        Limpar filtros
+      </button>
+      <a
+        *ngIf="!hasActiveFilters"
+      routerLink="/tickets/new"
+      class="text-accent hover:underline font-medium transition-colors"
+      >Criar primeiro chamado</a
+    >
+    </div>
+  </div>
+
+  <!-- Table List -->
+  <div
+    *ngIf="!loading && !error && filteredTickets.length > 0"
+    class="space-y-4"
+  >
+    <div
+      class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm dark:shadow-slate-950/20 transition-colors"
+    >
+      <div class="overflow-x-auto">
+        <table
+          class="w-full text-left text-sm text-slate-600 dark:text-slate-400"
+        >
+          <thead
+            class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 transition-colors"
+          >
+            <tr>
+              <th class="px-6 py-4">ID</th>
+              <th
+                class="px-6 py-4 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none"
+                (click)="sortBy('status')"
+              >
+                <div class="flex items-center gap-1">
+                  Status
+                  <ng-container *ngIf="getSortIcon('status') !== 'none'">
+                    <svg *ngIf="getSortIcon('status') === 'asc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"/>
+                    </svg>
+                    <svg *ngIf="getSortIcon('status') === 'desc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"/>
+                    </svg>
+                  </ng-container>
+                </div>
+              </th>
+              <th
+                class="px-6 py-4 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none"
+                (click)="sortBy('priority')"
+              >
+                <div class="flex items-center gap-1">
+                  Prioridade
+                  <ng-container *ngIf="getSortIcon('priority') !== 'none'">
+                    <svg *ngIf="getSortIcon('priority') === 'asc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"/>
+                    </svg>
+                    <svg *ngIf="getSortIcon('priority') === 'desc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"/>
+                    </svg>
+                  </ng-container>
+                </div>
+              </th>
+              <th
+                class="px-6 py-4 w-1/3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none"
+                (click)="sortBy('title')"
+              >
+                <div class="flex items-center gap-1">
+                  Título / Descrição
+                  <ng-container *ngIf="getSortIcon('title') !== 'none'">
+                    <svg *ngIf="getSortIcon('title') === 'asc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"/>
+                    </svg>
+                    <svg *ngIf="getSortIcon('title') === 'desc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"/>
+                    </svg>
+                  </ng-container>
+                </div>
+              </th>
+              <th
+                class="px-6 py-4 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none"
+                (click)="sortBy('category')"
+              >
+                <div class="flex items-center gap-1">
+                  Categoria
+                  <ng-container *ngIf="getSortIcon('category') !== 'none'">
+                    <svg *ngIf="getSortIcon('category') === 'asc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"/>
+                    </svg>
+                    <svg *ngIf="getSortIcon('category') === 'desc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"/>
+                    </svg>
+                  </ng-container>
+                </div>
+              </th>
+              <th
+                class="px-6 py-4 text-right cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none"
+                (click)="sortBy('createdAt')"
+              >
+                <div class="flex items-center justify-end gap-1">
+                  Data
+                  <ng-container *ngIf="getSortIcon('createdAt') !== 'none'">
+                    <svg *ngIf="getSortIcon('createdAt') === 'asc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"/>
+                    </svg>
+                    <svg *ngIf="getSortIcon('createdAt') === 'desc'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"/>
+                    </svg>
+                  </ng-container>
+                </div>
+              </th>
+              <th class="px-6 py-4 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            <tr
+              *ngFor="let ticket of paginatedTickets; let i = index"
+              class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors animate-row"
+              [style.animation-delay]="i * 60 + 'ms'"
+            >
+              <td
+                class="px-6 py-4 font-mono text-xs text-slate-400 dark:text-slate-500"
+              >
+                #{{ ticket.id.substring(0, 8) }}
+              </td>
+              <td class="px-6 py-4">
+                <select
+                  [value]="ticket.status"
+                  (change)="onStatusChange($event, ticket.id)"
+                  class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-xs font-medium focus:ring-2 focus:ring-accent transition-all cursor-pointer"
+                  [attr.aria-label]="'Status do chamado ' + ticket.id.substring(0, 8)"
+                >
+                  <option *ngFor="let status of statuses" [value]="status">
+                    {{ status }}
+                  </option>
+                </select>
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  [class]="
+                    'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ' +
+                    (ticket.priority | priorityColor)
+                  "
+                >
+                  {{ ticket.priority }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div
+                  class="font-medium text-slate-900 dark:text-slate-50 mb-1 transition-colors"
+                >
+                  {{ ticket.title }}
+                </div>
+                <div
+                  class="text-slate-500 dark:text-slate-400 truncate max-w-md transition-colors"
+                >
+                  {{ ticket.description }}
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="text-slate-400 dark:text-slate-500 transition-colors"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                    ></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                  </svg>
+                  <span>{{ ticket.category }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-right whitespace-nowrap">
+                <div
+                  class="flex items-center justify-end gap-2 text-slate-400 dark:text-slate-500 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>{{ ticket.createdAt | date : "dd/MM/yyyy" }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <a
+                    [routerLink]="['/tickets', ticket.id, 'edit']"
+                    class="text-accent hover:text-blue-600 dark:hover:text-blue-400 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+                    aria-label="Editar chamado"
+                    title="Editar"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                      ></path>
+                      <path
+                        d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                      ></path>
+                    </svg>
+                  </a>
+                  <button
+                    (click)="confirmDelete(ticket.id, $event)"
+                    class="text-red-500 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                    aria-label="Deletar chamado"
+                    title="Deletar"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      ></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      class="flex flex-col sm:flex-row items-center justify-between gap-4 px-2"
+    >
+      <p
+        class="text-sm text-slate-500 dark:text-slate-400 transition-colors"
+      >
+        Mostrando {{ (currentPage - 1) * pageSize + 1 }} a
+        {{ Math.min(currentPage * pageSize, filteredTickets.length) }} de
+        {{ filteredTickets.length }} registros
+      </p>
+
+      <div *ngIf="totalPages > 1" class="flex items-center gap-1">
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage === 1"
+          class="p-2 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          aria-label="Página anterior"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <button
+          *ngFor="let page of pageNumbers"
+          (click)="goToPage(page)"
+          [class]="
+            page === currentPage
+              ? 'px-3 py-2 rounded-lg bg-accent text-white font-medium'
+              : 'px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors'
+          "
+        >
+          {{ page }}
+        </button>
+
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+          class="p-2 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          aria-label="Próxima página"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<app-confirm-modal
+  [isOpen]="showDeleteModal"
+  title="Deletar Chamado"
+  message="Tem certeza que deseja deletar este chamado? Esta ação não pode ser desfeita."
+  confirmText="Deletar"
+  cancelText="Cancelar"
+  type="danger"
+  (confirm)="onDeleteConfirm()"
+  (cancel)="onDeleteCancel()"
+></app-confirm-modal>

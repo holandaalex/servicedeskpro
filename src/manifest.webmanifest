@@ -1,0 +1,38 @@
+{
+  "name": "ServiceDesk Pro - Gerenciamento de Chamados",
+  "short_name": "ServiceDesk Pro",
+  "description": "Sistema moderno de gerenciamento de chamados de TI corporativos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "assets/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Novo Chamado",
+      "short_name": "Novo",
+      "description": "Criar um novo chamado de serviço",
+      "url": "/tickets/new",
+      "icons": []
+    }
+  ]
+}
+

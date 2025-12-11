@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO: Título otimizado para Google -->
+    <title>ServiceDesk Pro - Sistema de Gerenciamento de Chamados Corporativos</title>
+    
+    <!-- SEO: Meta description otimizada (150-160 caracteres) -->
+    <meta
+      name="description"
+      content="ServiceDesk Pro: Sistema moderno de gerenciamento de chamados de TI. Crie, acompanhe e resolva solicitações de suporte técnico de forma rápida e eficiente."
+    />
+    
+    <!-- SEO: Palavras-chave relevantes -->
+    <meta name="keywords" content="service desk, help desk, chamados TI, suporte técnico, gestão de chamados, tickets, ITSM, Angular" />
+    
+    <!-- SEO: Autor -->
+    <meta name="author" content="Alexsander Barreto" />
+    
+    <!-- SEO: Robots - permitir indexação -->
+    <meta name="robots" content="index, follow" />
+    
+    <!-- SEO: Canonical URL -->
+    <link rel="canonical" href="https://servicedesk-pro.alexholanda.com.br/" />
+    
+    <!-- SEO: Open Graph para redes sociais -->
+    <meta property="og:title" content="ServiceDesk Pro - Gerenciamento de Chamados" />
+    <meta property="og:description" content="Sistema moderno de gerenciamento de chamados de TI. Crie, acompanhe e resolva solicitações de suporte técnico." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="ServiceDesk Pro" />
+    
+    <!-- SEO: Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ServiceDesk Pro - Gerenciamento de Chamados" />
+    <meta name="twitter:description" content="Sistema moderno de gerenciamento de chamados de TI corporativos." />
+    
+    <!-- Tema e cores -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+    
+    <base href="/" />
+
+    <!-- Favicon PNG (imagem personalizada) -->
+    <link rel="icon" type="image/png" href="assets/images/logo.png" />
+    <link rel="apple-touch-icon" href="assets/images/logo.png" />
+
+    <!-- PWA: Web App Manifest -->
+    <link rel="manifest" href="manifest.webmanifest" />
+
+    <!-- Performance: Preconnect para recursos externos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fonte Inter com display=swap para melhor performance -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      app-root {
+        display: contents;
+      }
+    </style>
+  </head>
+  <body class="bg-background text-slate-800 antialiased">
+    <app-root>
+      <div
+        id="app-loader"
+        class="fixed inset-0 flex flex-col items-center justify-center bg-slate-50 z-50"
+      >
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"
+        ></div>
+        <h2 class="text-slate-800 text-lg font-semibold">ServiceDesk Pro</h2>
+        <p class="text-slate-500 text-sm mt-1">Carregando sistema...</p>
+      </div>
+    </app-root>
+  </body>
+</html>
