@@ -124,10 +124,10 @@ O requisito original sugeria usar uma biblioteca de componentes como PrimeNG, Ma
 
 ```bash
 # Clonar o repositório
-git clone https://github.com/alexholanda/servicedesk-pro.git
+git clone https://github.com/holandaalex/servicedeskpro
 
 # Entrar na pasta
-cd servicedesk-pro
+cd servicedeskpro
 
 # Instalar dependências
 npm install
@@ -154,6 +154,8 @@ npm run test
 | `npm run build`      | Build de desenvolvimento           |
 | `npm run build:prod` | Build otimizado para produção      |
 | `npm run test`       | Executa testes unitários           |
+
+OBS: Foi feito um Deploy real no meu ambiente de produção particular e tá rodando normalmente em: https://cni.alexholanda.com.br
 
 ---
 
@@ -383,11 +385,11 @@ this.service.getData()
 
 <div align="center">
 
-**Desenvolvido com ❤️ por Alexsander Barreto**
+**Desenvolvido por Alexsander Barreto**
 
 [![Website](https://img.shields.io/badge/Website-alexholanda.com.br-blue?style=for-the-badge&logo=google-chrome&logoColor=white)](https://alexholanda.com.br)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/alexholanda)
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/alexholanda)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alexsanderholanda/)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/holandaalex)
 
 </div>
 

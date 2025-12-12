@@ -6,17 +6,19 @@
     <div class="container mx-auto px-4 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <!-- Logo com cantos arredondados -->
-        <img
-          src="assets/images/logo.png"
-          alt="ServiceDesk Pro Logo"
-          width="40"
-          height="40"
-          class="rounded-xl shadow-sm"
-          loading="eager"
-        />
-        <span class="text-xl font-bold text-slate-800 dark:text-white tracking-tight transition-colors"
-          >ServiceDesk<span class="text-accent">Pro</span></span
-        >
+        <a routerLink="/" class="flex items-center gap-3">
+          <img
+            src="assets/images/logo.png"
+            alt="ServiceDesk Pro Logo"
+            width="40"
+            height="40"
+            class="rounded-xl shadow-sm"
+            loading="eager"
+          />
+          <span class="text-xl font-bold text-slate-800 dark:text-white tracking-tight transition-colors hidden sm:inline"
+            >ServiceDesk<span class="text-accent">Pro</span></span
+          >
+        </a>
       </div>
 
       <div class="flex items-center gap-2">
@@ -45,7 +47,7 @@
               <rect x="14" y="12" width="7" height="9"></rect>
               <rect x="3" y="16" width="7" height="5"></rect>
             </svg>
-            <span class="hidden sm:inline">Meus Chamados</span>
+            <span class="hidden sm:inline">Chamados</span>
           </a>
           <a
             routerLink="/tickets/new"
@@ -69,7 +71,35 @@
               <line x1="12" y1="8" x2="12" y2="16"></line>
               <line x1="8" y1="12" x2="16" y2="12"></line>
             </svg>
-            <span class="hidden sm:inline">Novo Chamado</span>
+            <span class="hidden sm:inline">Novo</span>
+          </a>
+
+          <!-- Users Management (Admin/Supervisor only) -->
+          <a
+            *ngIf="canManageUsers()"
+            routerLink="/users"
+            routerLinkActive="text-accent font-semibold bg-blue-50 dark:bg-blue-950/50"
+            class="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Gerenciar usuários"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span class="hidden sm:inline">Usuários</span>
           </a>
         </nav>
 
@@ -123,13 +153,144 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
         </button>
+
+        <!-- User Menu -->
+        <div class="relative" *ngIf="isAuthenticated()">
+          <button
+            (click)="toggleUserMenu()"
+            class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            aria-label="Menu do usuário"
+          >
+            <div
+              class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm"
+            >
+              {{ getInitials(currentUser()?.name || '') }}
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="text-slate-400 hidden sm:block"
+              [class.rotate-180]="showUserMenu()"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            *ngIf="showUserMenu()"
+            class="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50 animate-fade-in"
+            (clickOutside)="closeUserMenu()"
+          >
+            <!-- User Info -->
+            <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+              <p class="font-medium text-slate-900 dark:text-white">
+                {{ currentUser()?.name }}
+              </p>
+              <p class="text-sm text-slate-500 dark:text-slate-400 truncate">
+                {{ currentUser()?.email }}
+              </p>
+              <span
+                [class]="getRoleColor(currentUser()?.role!)"
+                class="inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium"
+              >
+                {{ currentUser()?.role }}
+              </span>
+            </div>
+
+            <!-- Menu Items -->
+            <div class="py-2">
+              <a
+                routerLink="/"
+                (click)="closeUserMenu()"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="7" height="9"></rect>
+                  <rect x="14" y="3" width="7" height="5"></rect>
+                  <rect x="14" y="12" width="7" height="9"></rect>
+                  <rect x="3" y="16" width="7" height="5"></rect>
+                </svg>
+                Meus Chamados
+              </a>
+
+              <a
+                *ngIf="canManageUsers()"
+                routerLink="/users"
+                (click)="closeUserMenu()"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Gerenciar Usuários
+              </a>
+            </div>
+
+            <!-- Logout -->
+            <div class="border-t border-slate-100 dark:border-slate-700 pt-2">
+              <button
+                (click)="logout()"
+                class="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sair
+              </button>
+            </div>
+          </div>
+
+          <!-- Click Outside Overlay -->
+          <div
+            *ngIf="showUserMenu()"
+            class="fixed inset-0 z-40"
+            (click)="closeUserMenu()"
+          ></div>
+        </div>
       </div>
     </div>
   </header>
 
   <!-- Main Content -->
   <main class="flex-grow container mx-auto px-4 py-8">
-    <ng-content></ng-content>
+    <div class="page-transition">
+      <router-outlet></router-outlet>
+    </div>
   </main>
 
   <!-- Footer -->

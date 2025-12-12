@@ -70,7 +70,7 @@ interface StatCard {
                   ></path>
                 </svg>
               }
-              @case ('open') {
+              @case ('pending') {
                 <svg
                   class="w-5 h-5"
                   [class]="stat.color"
@@ -145,53 +145,92 @@ interface StatCard {
         @if (totalTickets() > 0) {
           <div
             class="h-full bg-emerald-500 transition-all duration-500"
-            [style.width.%]="getStatusPercentage('Aberto')"
-            title="Abertos: {{ getStatusCount('Aberto') }}"
+            [style.width.%]="getStatusPercentage(TicketStatus.OPEN)"
+            [title]="'Abertos: ' + getStatusCount(TicketStatus.OPEN)"
           ></div>
           <div
             class="h-full bg-amber-500 transition-all duration-500"
-            [style.width.%]="getStatusPercentage('Em Andamento')"
-            title="Em Andamento: {{ getStatusCount('Em Andamento') }}"
+            [style.width.%]="getStatusPercentage(TicketStatus.PENDING_APPROVAL)"
+            [title]="'Aguardando Aprovação: ' + getStatusCount(TicketStatus.PENDING_APPROVAL)"
           ></div>
           <div
             class="h-full bg-blue-500 transition-all duration-500"
-            [style.width.%]="getStatusPercentage('Resolvido')"
-            title="Resolvidos: {{ getStatusCount('Resolvido') }}"
+            [style.width.%]="getStatusPercentage(TicketStatus.IN_PROGRESS)"
+            [title]="'Em Andamento: ' + getStatusCount(TicketStatus.IN_PROGRESS)"
+          ></div>
+          <div
+            class="h-full bg-orange-500 transition-all duration-500"
+            [style.width.%]="getStatusPercentage(TicketStatus.ON_HOLD)"
+            [title]="'Em Espera: ' + getStatusCount(TicketStatus.ON_HOLD)"
+          ></div>
+          <div
+            class="h-full bg-teal-500 transition-all duration-500"
+            [style.width.%]="getStatusPercentage(TicketStatus.RESOLVED)"
+            [title]="'Resolvidos: ' + getStatusCount(TicketStatus.RESOLVED)"
           ></div>
           <div
             class="h-full bg-slate-400 transition-all duration-500"
-            [style.width.%]="getStatusPercentage('Fechado')"
-            title="Fechados: {{ getStatusCount('Fechado') }}"
+            [style.width.%]="getStatusPercentage(TicketStatus.CLOSED)"
+            [title]="'Fechados: ' + getStatusCount(TicketStatus.CLOSED)"
+          ></div>
+          <div
+            class="h-full bg-red-400 transition-all duration-500"
+            [style.width.%]="getStatusPercentage(TicketStatus.CANCELLED)"
+            [title]="'Cancelados: ' + getStatusCount(TicketStatus.CANCELLED)"
           ></div>
         }
       </div>
 
       <!-- Legend -->
-      <div class="flex flex-wrap gap-4 mt-3">
+      <div class="flex flex-wrap gap-x-4 gap-y-2 mt-3">
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
           <span class="text-xs text-slate-600 dark:text-slate-400"
-            >Aberto ({{ getStatusCount('Aberto') }})</span
+            >Aberto ({{ getStatusCount(TicketStatus.OPEN) }})</span
           >
         </div>
+        @if (getStatusCount(TicketStatus.PENDING_APPROVAL) > 0) {
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 rounded-full bg-amber-500"></div>
           <span class="text-xs text-slate-600 dark:text-slate-400"
-            >Em Andamento ({{ getStatusCount('Em Andamento') }})</span
+            >Aguardando ({{ getStatusCount(TicketStatus.PENDING_APPROVAL) }})</span
           >
         </div>
+        }
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 rounded-full bg-blue-500"></div>
           <span class="text-xs text-slate-600 dark:text-slate-400"
-            >Resolvido ({{ getStatusCount('Resolvido') }})</span
+            >Em Andamento ({{ getStatusCount(TicketStatus.IN_PROGRESS) }})</span
+          >
+        </div>
+        @if (getStatusCount(TicketStatus.ON_HOLD) > 0) {
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-orange-500"></div>
+          <span class="text-xs text-slate-600 dark:text-slate-400"
+            >Em Espera ({{ getStatusCount(TicketStatus.ON_HOLD) }})</span
+          >
+        </div>
+        }
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-teal-500"></div>
+          <span class="text-xs text-slate-600 dark:text-slate-400"
+            >Resolvido ({{ getStatusCount(TicketStatus.RESOLVED) }})</span
           >
         </div>
         <div class="flex items-center gap-2">
           <div class="w-3 h-3 rounded-full bg-slate-400"></div>
           <span class="text-xs text-slate-600 dark:text-slate-400"
-            >Fechado ({{ getStatusCount('Fechado') }})</span
+            >Fechado ({{ getStatusCount(TicketStatus.CLOSED) }})</span
           >
         </div>
+        @if (getStatusCount(TicketStatus.CANCELLED) > 0) {
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-red-400"></div>
+          <span class="text-xs text-slate-600 dark:text-slate-400"
+            >Cancelado ({{ getStatusCount(TicketStatus.CANCELLED) }})</span
+          >
+        </div>
+        }
       </div>
     </div>
   `,
@@ -210,6 +249,9 @@ interface StatCard {
 export class StatsCardsComponent {
   private _tickets = signal<Ticket[]>([]);
 
+  // Expor TicketStatus para o template
+  TicketStatus = TicketStatus;
+
   @Input()
   set tickets(value: Ticket[]) {
     this._tickets.set(value);
@@ -220,10 +262,20 @@ export class StatsCardsComponent {
   stats = computed<StatCard[]>(() => {
     const tickets = this._tickets();
     const total = tickets.length;
-    const open = tickets.filter((t) => t.status === TicketStatus.OPEN).length;
-    const inProgress = tickets.filter(
-      (t) => t.status === TicketStatus.IN_PROGRESS
+
+    // Chamados pendentes (abertos + aguardando aprovação)
+    const pending = tickets.filter(
+      (t) =>
+        t.status === TicketStatus.OPEN ||
+        t.status === TicketStatus.PENDING_APPROVAL
     ).length;
+
+    const inProgress = tickets.filter(
+      (t) =>
+        t.status === TicketStatus.IN_PROGRESS ||
+        t.status === TicketStatus.ON_HOLD
+    ).length;
+
     const urgent = tickets.filter(
       (t) => t.priority === TicketPriority.URGENT
     ).length;
@@ -237,12 +289,12 @@ export class StatsCardsComponent {
         bgColor: "bg-blue-100 dark:bg-blue-900/30",
       },
       {
-        label: "Abertos",
-        value: open,
-        icon: "open",
+        label: "Aguardando",
+        value: pending,
+        icon: "pending",
         color: "text-emerald-600 dark:text-emerald-400",
         bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
-        percentage: total > 0 ? (open / total) * 100 : 0,
+        percentage: total > 0 ? (pending / total) * 100 : 0,
       },
       {
         label: "Em Andamento",
@@ -263,14 +315,13 @@ export class StatsCardsComponent {
     ];
   });
 
-  getStatusCount(status: string): number {
+  getStatusCount(status: TicketStatus): number {
     return this._tickets().filter((t) => t.status === status).length;
   }
 
-  getStatusPercentage(status: string): number {
+  getStatusPercentage(status: TicketStatus): number {
     const total = this.totalTickets();
     if (total === 0) return 0;
     return (this.getStatusCount(status) / total) * 100;
   }
 }
-

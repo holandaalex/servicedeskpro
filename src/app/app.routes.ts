@@ -1,41 +1,97 @@
 /**
  * @fileoverview Configuração de rotas da aplicação
  * @description Define todas as rotas disponíveis no sistema.
- * Utiliza lazy loading implícito com Standalone Components.
- * 
+ *
  * ESTRUTURA DE ROTAS:
- * - "/" → Lista de chamados (página inicial)
- * - "/tickets/new" → Formulário de novo chamado
- * - "/tickets/:id/edit" → Formulário de edição
- * - "/**" → Página 404 (rota não encontrada)
- * 
+ * - Rotas públicas (sem layout): /login, /register
+ * - Rotas protegidas (com layout): /, /tickets/*, /users
+ * - Página 404
+ *
  * @author Alexsander Barreto
  */
 
 import { Routes } from "@angular/router";
-import { TicketListComponent } from "./features/tickets/components/ticket-list/ticket-list.component";
-import { TicketFormComponent } from "./features/tickets/components/ticket-form/ticket-form.component";
-import { NotFoundComponent } from "./features/not-found/not-found.component";
+import { authGuard, guestGuard, roleGuard } from "./core/guards/auth.guard";
+import { UserRole } from "./core/models/user.model";
 
 export const routes: Routes = [
+  // ========================================
+  // ROTAS PÚBLICAS (sem layout)
+  // ========================================
+  {
+    path: "login",
+    loadComponent: () =>
+      import("./features/auth/login/login.component").then(
+        (m) => m.LoginComponent
+      ),
+    canActivate: [guestGuard],
+    title: "Login - ServiceDesk Pro",
+  },
+  {
+    path: "register",
+    loadComponent: () =>
+      import("./features/auth/register/register.component").then(
+        (m) => m.RegisterComponent
+      ),
+    canActivate: [guestGuard],
+    title: "Cadastro - ServiceDesk Pro",
+  },
+
+  // ========================================
+  // ROTAS PROTEGIDAS (com layout)
+  // ========================================
   {
     path: "",
-    component: TicketListComponent,
-    title: "Meus Chamados - ServiceDesk Pro", // SEO: título da página
+    loadComponent: () =>
+      import("./layout/layout.component").then((m) => m.LayoutComponent),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: "",
+        loadComponent: () =>
+          import(
+            "./features/tickets/components/ticket-list/ticket-list.component"
+          ).then((m) => m.TicketListComponent),
+        title: "Meus Chamados - ServiceDesk Pro",
+      },
+      {
+        path: "tickets/new",
+        loadComponent: () =>
+          import(
+            "./features/tickets/components/ticket-form/ticket-form.component"
+          ).then((m) => m.TicketFormComponent),
+        title: "Novo Chamado - ServiceDesk Pro",
+      },
+      {
+        path: "tickets/:id/edit",
+        loadComponent: () =>
+          import(
+            "./features/tickets/components/ticket-form/ticket-form.component"
+          ).then((m) => m.TicketFormComponent),
+        title: "Editar Chamado - ServiceDesk Pro",
+      },
+      {
+        path: "users",
+        loadComponent: () =>
+          import("./features/users/user-management.component").then(
+            (m) => m.UserManagementComponent
+          ),
+        canActivate: [roleGuard],
+        data: { roles: [UserRole.ADMIN, UserRole.SUPERVISOR] },
+        title: "Gestão de Usuários - ServiceDesk Pro",
+      },
+    ],
   },
+
+  // ========================================
+  // PÁGINA 404
+  // ========================================
   {
-    path: "tickets/new",
-    component: TicketFormComponent,
-    title: "Novo Chamado - ServiceDesk Pro",
-  },
-  {
-    path: "tickets/:id/edit",
-    component: TicketFormComponent,
-    title: "Editar Chamado - ServiceDesk Pro",
-  },
-  {
-    path: "**", // Wildcard: captura todas as rotas não definidas
-    component: NotFoundComponent,
+    path: "**",
+    loadComponent: () =>
+      import("./features/not-found/not-found.component").then(
+        (m) => m.NotFoundComponent
+      ),
     title: "Página não encontrada - ServiceDesk Pro",
   },
 ];
