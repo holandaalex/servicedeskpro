@@ -389,7 +389,6 @@ this.service.getData()
 
 [![Website](https://img.shields.io/badge/Website-alexholanda.com.br-blue?style=for-the-badge&logo=google-chrome&logoColor=white)](https://alexholanda.com.br)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alexsanderholanda/)
-[![GitHub]([https://github.com/holandaalex)
 
 </div>
 
